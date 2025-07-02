@@ -1,48 +1,31 @@
 package main
 
-import "time"
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
 
-type LogEntry struct {
-	Time            time.Time `json:"time"`
-	Category        string    `json:"category"`
-	OperationName   string    `json:"operationName"`
-	ResultType      string    `json:"resultType"`
-	CorrelationID   string    `json:"correlationId"`
-	CallerIPAddress string    `json:"callerIpAddress"`
-	Identity        struct {
-		Claim map[string]string `json:"claim"`
-	} `json:"identity"`
-	Properties struct {
-		ID             string `json:"id"`
-		ClientInfo     string `json:"clientInfo"`
-		RequestURI     string `json:"requestUri"`
-		HTTPStatusCode int    `json:"httpStatusCode"`
-		Properties     struct {
-			SKU struct {
-				Family   string      `json:"Family"`
-				Name     string      `json:"Name"`
-				Capacity interface{} `json:"Capacity"`
-			} `json:"sku"`
-			TenantID                     string      `json:"tenantId"`
-			NetworkACLs                  interface{} `json:"networkAcls"`
-			EnabledForDeployment         int         `json:"enabledForDeployment"`
-			EnabledForDiskEncryption     int         `json:"enabledForDiskEncryption"`
-			EnabledForTemplateDeployment int         `json:"enabledForTemplateDeployment"`
-			EnableSoftDelete             int         `json:"enableSoftDelete"`
-			SoftDeleteRetentionInDays    int         `json:"softDeleteRetentionInDays"`
-			EnableRbacAuthorization      int         `json:"enableRbacAuthorization"`
-			EnablePurgeProtection        interface{} `json:"enablePurgeProtection"`
-		} `json:"properties"`
-	} `json:"properties"`
-	ResourceID       string `json:"resourceId"`
-	OperationVersion string `json:"operationVersion"`
-	ResultSignature  string `json:"resultSignature"`
-	DurationMs       string `json:"durationMs"`
-}
+	"github.com/NovaMikael/Azurediago/internals/eventhub"
+	"github.com/NovaMIkael/Azurediago/internals/logprocessing"
+)
 
-type EventHubMessage struct {
-	Records               []LogEntry `json:"records"`
-	EventProcessedUtcTime time.Time  `json:"EventProcessedUtcTime"`
-	PartitionID           int        `json:"PartitionId"`
-	EventEnqueuedUtcTime  time.Time  `json:"EventEnqueuedUtcTime"`
+func main() {
+	receiver, err := eventhub.CreateReceiver("eventsochgo.servicebus.windows.net", "storageaccount", "0")
+	if err != nil {
+		log.Fatalf("Failed to create receiver: %v", err)
+	}
+	defer receiver.Close(context.TODO())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	events, err := receiver.ReceiveEvents(ctx, 10, nil)
+	if err != nil {
+		log.Fatalf("Failed to receive events: %v", err)
+	}
+
+	for _, evt := range events {
+		fmt.Printf("Event Body: %s\n", string(evt.Body))
+	}
 }
