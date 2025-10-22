@@ -7,13 +7,12 @@ import (
 )
 
 type AzFWNetworkRule struct {
-	TimeGenerated string `json:"TimeGenerated"`
-	SourceIP      string `json:"SourceIP"`
-	DestinationIP string `json:"DestinationIP"`
-	DestinationPort int `json:"DestinationPort"`
-	Protocol     string `json:"Protocol"`
-	Action   	string `json:"Action"`
-	Rule     string `json:"Rule"`
+	TimeGenerated   string `json:"time"`
+	SourceIP        string `json:"SourceIp"`
+	DestinationIP   string `json:"DestinationIp"`
+	DestinationPort int    `json:"DestinationPort"`
+	Protocol        string `json:"Protocol"`
+	Action          string `json:"Action"`
 }
 
 type AzFWApplicationRule struct {
@@ -26,13 +25,10 @@ type AzFWApplicationRule struct {
 	Rule     string `json:"Rule"`
 }
 
-func ParseAzFWNetworkRule(logLine string) (AzFWNetworkRule, error) {
-	re := regexp.MustCompile(`(?P<Protocol>\w+)\srequest\sfrom\s(?P<SourceIP>\d+\.\d+\.\d+\.\d+):(?P<SourcePort>\d+)\sto\s(?P<DestinationIP>\d+\.\d+\.\d+\.\d+):(?P<DestinationPort>\d+)\.\sAction:\s(?P<Action>\w+)`)
-	match := re.FindStringSubmatch(logLine)
+{ "time": "2025-09-22T11:32:59.124368+00:00", "resourceId": "/SUBSCRIPTIONS/0A347908-8617-40DB-8011-0F828996D75F/RESOURCEGROUPS/EVENTSMEDGO/PROVIDERS/MICROSOFT.NETWORK/AZUREFIREWALLS/BSICFIREWALL", "properties": {"Protocol":"ICMP Type=8","SourceIp":"10.0.2.4","SourcePort":0,"DestinationIp":"8.8.8.8","DestinationPort":0,"Action":"Deny","Policy":"","RuleCollectionGroup":"","RuleCollection":"","Rule":"","ActionReason":"Default Action"}, "category": "AZFWNetworkRule"}
 
-	if match == nil {
-		return AzFWNetworkRule{}, errors.New("log line does not match expected format")
-	}
+func ParseAzFWNetworkRule(logLine string) (AzFWNetworkRule, error) {
+
 
 	result := AzFWNetworkRule{
 		Protocol:       match[1],
